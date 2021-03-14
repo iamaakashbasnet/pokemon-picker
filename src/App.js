@@ -1,25 +1,53 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Switch, Route, Link } from 'react-router-dom';
+import About from './components/About';
+import Home from './components/Home';
 
-function App() {
+const App = () => {
+  const [pokemon, setPokemon] = useState();
+  const [page, setPage] = useState(10);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch(`https://pokeapi.co/api/v2/pokemon?offset=0&limit=${page}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const results = data.results.map((pokemon, idx) => {
+          return { ...pokemon, idx: idx + 1 };
+        });
+        setPokemon({ ...data, results });
+        setLoading(false);
+      });
+  }, [page]);
+
+  const pageIncrement = () => {
+    setPage(page + 10);
+    setLoading(true);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <>
+      <BrowserRouter>
+        <Link
+          to='/'
+          className='font-title block text-5xl text-center py-3 border-b'
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+          Pokemon Picker
+        </Link>
+
+        <Switch>
+          <Route path='/about/:slug/' exact component={About} />
+          <Route path='/' exact>
+            <Home
+              pokemon={pokemon}
+              loading={loading}
+              pageIncrement={pageIncrement}
+            />
+          </Route>
+        </Switch>
+      </BrowserRouter>
+    </>
   );
-}
+};
 
 export default App;
